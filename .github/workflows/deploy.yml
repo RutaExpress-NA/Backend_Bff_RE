@@ -43,3 +43,6 @@ jobs:
         run: |
           kubectl set image deployment/rutaexpress-bff bff=$ECR_REGISTRY/rutaexpress-bff:$IMAGE_TAG -n rutaexpress
           kubectl rollout status deployment/rutaexpress-bff -n rutaexpress --timeout=300s
+
+        
+#mensaje checkpoint prueba de pipeline
