@@ -24,14 +24,20 @@ public class CatalogProxyController {
     @Value("${rutaexpress.services.catalog-url}")
     private String catalogUrl;
 
+    private ResponseEntity<String> asJson(ResponseEntity<String> resp) {
+        return ResponseEntity.status(resp.getStatusCode())
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(resp.getBody());
+    }
+
     @GetMapping("/services")
     public ResponseEntity<String> listarServicios() {
-        return restTemplate.getForEntity(catalogUrl + "/api/catalog/services", String.class);
+        return asJson(restTemplate.getForEntity(catalogUrl + "/api/catalog/services", String.class));
     }
 
     @GetMapping("/services/{id}")
     public ResponseEntity<String> obtenerServicio(@PathVariable Long id) {
-        return restTemplate.getForEntity(catalogUrl + "/api/catalog/services/" + id, String.class);
+        return asJson(restTemplate.getForEntity(catalogUrl + "/api/catalog/services/" + id, String.class));
     }
 
     @PostMapping("/services")
@@ -39,11 +45,11 @@ public class CatalogProxyController {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         HttpEntity<String> request = new HttpEntity<>(body, headers);
-        return restTemplate.postForEntity(catalogUrl + "/api/catalog/services", request, String.class);
+        return asJson(restTemplate.postForEntity(catalogUrl + "/api/catalog/services", request, String.class));
     }
 
     @GetMapping("/fleet-capacity")
     public ResponseEntity<String> listarFlota() {
-        return restTemplate.getForEntity(catalogUrl + "/api/catalog/fleet-capacity", String.class);
+        return asJson(restTemplate.getForEntity(catalogUrl + "/api/catalog/fleet-capacity", String.class));
     }
 }
