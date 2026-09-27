@@ -3,6 +3,8 @@ package com.na.rutaexpress.bff.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,7 +36,9 @@ public class CatalogProxyController {
 
     @PostMapping("/services")
     public ResponseEntity<String> crearServicio(@RequestBody String body) {
-        HttpEntity<String> request = new HttpEntity<>(body);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> request = new HttpEntity<>(body, headers);
         return restTemplate.postForEntity(catalogUrl + "/api/catalog/services", request, String.class);
     }
 
