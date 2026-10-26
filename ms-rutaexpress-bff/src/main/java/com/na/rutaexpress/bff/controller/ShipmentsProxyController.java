@@ -1,8 +1,12 @@
 package com.na.rutaexpress.bff.controller;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -22,6 +26,21 @@ public class ShipmentsProxyController {
             .body(resp.getBody());
     }
 
+    private HttpEntity<Map<String, Object>> jsonEntity(Map<String, Object> body) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return new HttpEntity<>(body, headers);
+    }
+
+   
+    private String userIdOf(Jwt jwt) {
+        if (jwt == null) {
+            return "desconocido";   
+        }
+        String user = jwt.getClaimAsString("preferred_username");
+        return user != null ? user : jwt.getSubject();
+    }
+
     @GetMapping
     public ResponseEntity<String> listar() {
         return asJson(restTemplate.getForEntity(shipmentsUrl + "/api/shipments", String.class));
@@ -33,21 +52,27 @@ public class ShipmentsProxyController {
     }
 
     @PostMapping
-    public ResponseEntity<String> crear(@RequestBody String body) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> request = new HttpEntity<>(body, headers);
-        return asJson(restTemplate.postForEntity(shipmentsUrl + "/api/shipments", request, String.class));
+    public ResponseEntity<String> crear(@RequestBody Map<String, Object> body,
+                                        @AuthenticationPrincipal Jwt jwt) {
+      
+        body.putIfAbsent("createdByUserId", userIdOf(jwt));
+        return asJson(restTemplate.postForEntity(
+            shipmentsUrl + "/api/shipments", jsonEntity(body), String.class));
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<String> cambiarEstado(@PathVariable Long id, @RequestBody String body) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> request = new HttpEntity<>(body, headers);
+    public ResponseEntity<String> cambiarEstado(@PathVariable Long id,
+                                                @RequestBody Map<String, Object> body,
+                                                @AuthenticationPrincipal Jwt jwt) {
+  
+        if (!body.containsKey("nuevoStatus") && body.containsKey("status")) {
+            body.put("nuevoStatus", body.remove("status"));
+        }
+   
+        body.putIfAbsent("byUserId", userIdOf(jwt));
         return asJson(restTemplate.exchange(
             shipmentsUrl + "/api/shipments/" + id + "/status",
-            HttpMethod.PUT, request, String.class
+            HttpMethod.PUT, jsonEntity(body), String.class
         ));
     }
 }
