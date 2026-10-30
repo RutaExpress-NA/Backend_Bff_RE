@@ -3,6 +3,7 @@ package com.na.rutaexpress.bff.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -23,6 +24,9 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/actuator/health").permitAll()
                 .requestMatchers("/api/report/**", "/api/audit/**").hasAnyAuthority("Admin", "Auditor")
+                // el Cliente necesita LEER el catalogo para elegir el servicio al crear un envio
+                .requestMatchers(HttpMethod.GET, "/api/catalog/services", "/api/catalog/services/**")
+                    .hasAnyAuthority("Admin", "Despachador", "Cliente")
                 .requestMatchers("/api/catalog/**").hasAnyAuthority("Admin", "Despachador")
                 .requestMatchers("/api/shipments/**").hasAnyAuthority("Admin", "Despachador", "Cliente")
                 .anyRequest().authenticated()
